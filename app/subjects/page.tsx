@@ -1,12 +1,12 @@
 "use client";
-import dataContext from "@/lib/dataContext";
+import { SubjectsContext } from "@/lib/subjects";
 import { FormEventHandler, useContext, useRef, useState } from "react";
 
 export default function Subjects() {
     let inputRef = useRef<HTMLInputElement>(null);
     let [currentEditing, setCurrentEditing] = useState<boolean>(false);
 
-    let { subjects, addSubject, removeSubject, saveSubjects } = useContext(dataContext);
+    let { subs, addSub, delSub, saveSubs } = useContext(SubjectsContext);
 
     const handleAdd: FormEventHandler = (e) => {
         e.preventDefault();
@@ -17,13 +17,13 @@ export default function Subjects() {
         inputRef.current.value = "";
 
         if (v) {
-            addSubject(v);
+            addSub(v);
         }
     };
 
     const handleToggleEdit = () => {
         if (currentEditing) {
-            saveSubjects();
+            saveSubs();
         }
 
         setCurrentEditing(b => !b);
@@ -60,19 +60,19 @@ export default function Subjects() {
                 </form>
 
                 <ul className="mt-4 flex flex-col gap-2">
-                    {subjects.length === 0 && !currentEditing && (
+                    {subs.length === 0 && !currentEditing && (
                         <span>
-                            No subjects found. Add using the above edit button
+                            No subs found. Add using the above edit button
                         </span>
                     )}
                     
-                    {subjects.map(item => (
+                    {subs.map(item => (
                         <li key={item} className="p-2 bg-slate-200">
                             <div className="flex justify-between">
                                 {item}
 
                                 {currentEditing && (
-                                    <button onClick={() => removeSubject(item)} className="text-red-500">
+                                    <button onClick={() => delSub(item)} className="text-red-500">
                                         x
                                     </button>
                                 )}

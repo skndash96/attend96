@@ -1,15 +1,19 @@
-import dataContext from "@/lib/dataContext";
+import { SubjectsContext } from "@/lib/subjects";
+import { TimetableContext } from "@/lib/timetable";
 import { ChangeEventHandler, useContext, useEffect, useRef, useState } from "react";
 
 export default function Cell({
-    day, idx, sub, tableBeingEdited
+    day, idx, tableBeingEdited
 }: {
     day: number,
     idx: number,
-    sub: string,
     tableBeingEdited: boolean
 }) {
-    let { subjects, changeSubjectInTimetable } = useContext(dataContext);
+    let { subs } = useContext(SubjectsContext);
+    let { getSubjectInTimetable, changeSubjectInTimetable } = useContext(TimetableContext);
+    
+    let sub = getSubjectInTimetable(day, idx);
+
     let lastClicked = useRef<number | null>(null);
     let [cellBeingEdited, setCellBeingEdited] = useState<boolean>(false);
 
@@ -47,7 +51,7 @@ export default function Cell({
                         --
                     </option>
 
-                    {subjects.map(s => (
+                    {subs.map(s => (
                         <option key={s} className="p-2 text-xs bg-slate-900 hover:bg-slate-700 text-white">
                             {s}
                         </option>

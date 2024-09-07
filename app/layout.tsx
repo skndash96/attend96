@@ -1,16 +1,19 @@
 "use client";
+import { SubjectsContext, useSubjects } from "@/lib/subjects";
 import "./globals.css";
 import Sidebar from "@/components/sidebar";
-import { useData } from "@/lib/data";
-import dataContext from "@/lib/dataContext";
+import { TimetableContext, useTimetable } from "@/lib/timetable";
+import { RecordsContext, useRecords } from "@/lib/records";
 
 export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    let data = useData();
-
+    let subjects = useSubjects();
+    let timetable = useTimetable();
+    let records = useRecords();
+    
     return (
         <html lang="en">
             <head>
@@ -19,12 +22,16 @@ export default function RootLayout({
             </head>
 
             <body>
-                <dataContext.Provider value={data}>
-                    <div className="flex items-stretch h-[100dvh]">
-                        <Sidebar />
-                        {children}
-                    </div>
-                </dataContext.Provider>
+                <SubjectsContext.Provider value={subjects}>
+                    <TimetableContext.Provider value={timetable}>
+                        <RecordsContext.Provider value={records}>
+                            <div className="flex items-stretch h-[100dvh]">
+                                <Sidebar />
+                                {children}
+                            </div>
+                        </RecordsContext.Provider>
+                    </TimetableContext.Provider>
+                </SubjectsContext.Provider>
             </body>
         </html>
     );

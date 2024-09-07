@@ -1,14 +1,13 @@
 "use client";
 import Cell from "@/components/timetableCell";
-import { dayIndexMap } from "@/lib/data";
-import dataContext from "@/lib/dataContext";
+import { dayIndexMap, TimetableContext } from "@/lib/timetable";
 import { useContext, useEffect, useState } from "react";
 
 export default function Timetable() {
-    let { timetable, saveTimetable, removeColumnInTimetable, addColumnInTimetable } = useContext(dataContext);
+    let { timetable, saveTimetable, delColumnInTimetable, addColumnInTimetable } = useContext(TimetableContext);
     let [currentEditing, setCurrentEditing] = useState<boolean>(false);
     let [max, setMax] = useState<number>(0);
-
+    
     useEffect(() => {
         setMax(Math.max(...timetable.map(d => d.length)));
     }, [timetable]);
@@ -47,7 +46,7 @@ export default function Timetable() {
                                 <td></td>
                                 {new Array(max).fill(null).map((_, idx) => (
                                     <td key={idx} className="text-sm text-center text-red-500 break-words">
-                                        <button onClick={() => removeColumnInTimetable(idx)} className="">
+                                        <button onClick={() => delColumnInTimetable(idx)} className="">
                                             delete
                                         </button>
                                     </td>
@@ -63,15 +62,15 @@ export default function Timetable() {
                         {new Array(timetable.length).fill(null).map((_, row) => (
                             <tr key={row} className="even:bg-slate-200">
                                 <th className="p-4 bg-slate-600 text-white border-[1px] border-slate-900">
-                                    {dayIndexMap[row]}
+                                    {dayIndexMap[(row+1)%7]}
                                 </th>
+
                                 {new Array(max).fill(null).map((_, col) => (
                                     <Cell
                                         key={col}
                                         tableBeingEdited={currentEditing}
-                                        day={row}
+                                        day={(row+1)%7}
                                         idx={col}
-                                        sub={timetable[row][col]}
                                     />
                                 ))}
                             </tr>
