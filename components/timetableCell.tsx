@@ -47,7 +47,7 @@ export default function Cell({
         <td onClick={handleClick} className={`relative border-[1px] border-slate-600 ${tableBeingEdited ? "cursor-pointer select-none" : ""} ${cellBeingEdited ? "" : "p-4"}`}>
             {cellBeingEdited ? (
                 <select defaultValue={sub} onChange={handleChange} className="border-2 border-slate-800">
-                    <option value="p-2 text-xs bg-slate-900 hover:bg-slate-700 text-white">
+                    <option value="" className="p-2 text-xs bg-slate-900 hover:bg-slate-700 text-white">
                         --
                     </option>
 
