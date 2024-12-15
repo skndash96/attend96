@@ -1,16 +1,10 @@
-import Icon from "@/components/Icon";
-import AddTimetableCellModal from "@/components/timetable/AddTimetableCellModal";
 import Cell from "@/components/timetable/Cell";
-import DayCell from "@/components/timetable/DayCell";
-import DayHighlighter from "@/components/timetable/DayHighlighter";
-import EditCell from "@/components/timetable/EditCell";
 import { days } from "@/lib/constants";
-import { addCell, deleteCells, FullCell, getTimetable, orderCellsIdx } from "@/utils/timetable";
+import { FullCell, getTimetable } from "@/utils/timetable";
 import { useNavigation } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { BackHandler, Dimensions, Pressable, ScrollView, Text, View } from "react-native";
-import DraggableFlatList from "react-native-draggable-flatlist";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { Dimensions, Pressable, ScrollView, Text, View } from "react-native";
 import EditSlots from "@/components/timetable/EditSlots";
 import EditTimetable from "@/components/timetable/EditTimetable";
 import { getAllSlots, Slot } from "@/utils/slots";
@@ -22,7 +16,7 @@ export default function Timetable() {
   const db = useSQLiteContext();
   const navigator = useNavigation();
 
-  const [timetable, setTimetable] = useState<FullCell[][]>([]);
+  const [timetable, setTimetable] = useState<(FullCell | null)[][]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [counter, setCounter] = useState(0);
   const [editing, setEditing] = useState(0); //0 for no, 1 for timetable, 2 for slots
@@ -110,6 +104,7 @@ export default function Timetable() {
 
         {editing === 1 ? (
           <EditTimetable
+            slots={slots}
             setVisible={(isOpen: boolean) => setEditing(isOpen ? 1 : 0)}
             timetable={timetable}
             updateTimetable={() => setCounter(c => c + 1)}

@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { BackHandler, Pressable, Text, View } from 'react-native'
 import AddTimetableCellModal from './AddTimetableCellModal'
 import DayHighlighter from './DayHighlighter'
@@ -9,70 +9,83 @@ import EditCell from './EditCell'
 import { useSQLiteContext } from 'expo-sqlite'
 import { useNavigation } from 'expo-router'
 import Icon from '../Icon'
-import { Slot } from '@/utils/slots'
+import { getAllSlots, Slot } from '@/utils/slots'
 
 export default function EditTimetable({
   setVisible,
   updateTimetable,
+  slots,
   timetable,
 }: {
   setVisible: (b: boolean) => void,
-  timetable: FullCell[][],
+  slots: Slot[],
+  timetable: (FullCell | null)[][],
   updateTimetable: () => void,
 }) {
   const db = useSQLiteContext();
   const navigator = useNavigation();
   const [editing, setEditing] = useState(1);
-  const [selected, setSelected] = useState<number[]>([]);
-  const [addCellModalVisible, setAddCellModalVisible] = useState(false);
+  const [selected, setSelected] = useState<(number)[]>([]); // selected slot index
 
-  const handleDragEnd = useCallback((data: FullCell[]) => {
+  interface AddCellModalData {
+    slotIdx: number,
+    visible: boolean
+  }
+  const [addCellModalData, setAddCellModalData] = useState<AddCellModalData>({
+    visible: false,
+    slotIdx: -1
+  });
+
+  const handleDragEnd = useCallback((data: (FullCell | null)[]) => {
     orderCellsIdx(db, data)
       .then(() => updateTimetable())
       .catch(error => console.error(error));
   }, []);
 
-  const handleClick = (itemId: number) => {
+  const handleClick = (slotIndex: number) => {
     if (selected.length === 0) return;
-    else handleLongPress(itemId);
+    else handleLongPress(slotIndex);
   };
 
-  const handleLongPress = (itemId: number) => {
-    const newAddSubjectModal = [...selected];
+  const handleLongPress = (slotIndex: number) => {
+    const newSelected = [...selected];
 
-    const addSubjectModalIdx = newAddSubjectModal.indexOf(itemId);
+    const idx = newSelected.indexOf(slotIndex);
 
-    if (addSubjectModalIdx === -1) newAddSubjectModal.push(itemId);
+    if (idx === -1) newSelected.push(slotIndex);
     else {
-      newAddSubjectModal.splice(addSubjectModalIdx, 1);
+      newSelected.splice(idx, 1);
     }
 
-    setSelected(newAddSubjectModal);
+    setSelected(newSelected);
   };
 
-  const handleClose = (itemId: number | null) => {
-    if (itemId !== null) {
-      addCell(db, {
-        idx: timetable[editing].length,
+  const handleClose = async (subjectId: number|null, slotIdx: number) => {
+    if (subjectId !== null) {
+      await addCell(db, {
+        idx: slotIdx ?? timetable[editing].length,
         day: editing,
-        subjectId: itemId
+        subjectId
       })
         .then(() => {
           updateTimetable();
         })
         .catch(error => {
           console.error(error);
-        })
-        .finally(() => {
-          setAddCellModalVisible(false);
         });
-    } else {
-      setAddCellModalVisible(false);
     }
+
+    setAddCellModalData(p => ({
+      slotIdx: -1,
+      visible: false
+    }));
+    setSelected([]);
   };
 
   const handleDelete = () => {
-    deleteCells(db, selected)
+    const toDelete = selected.filter(s => timetable[editing][s] !== null);
+
+    deleteCells(db, toDelete.map(s => timetable[editing][s]!.id))
       .then(() => {
         setSelected([]);
         updateTimetable();
@@ -87,7 +100,7 @@ export default function EditTimetable({
       } else {
         setVisible(false);
       }
-      
+
       return true;
     };
 
@@ -107,13 +120,6 @@ export default function EditTimetable({
             flexDirection: 'row',
             alignItems: 'center'
           }}>
-            <Pressable android_ripple={{
-              color: 'gray'
-            }} onPress={() => setAddCellModalVisible(true)} style={{
-              padding: 10,
-            }}>
-              <Icon color="royalblue" name="add" size={20} />
-            </Pressable>
             <Pressable android_ripple={{
               color: 'gray'
             }} onPress={() => setVisible(false)} style={{
@@ -148,12 +154,29 @@ export default function EditTimetable({
           flexDirection: 'row',
           alignItems: 'center'
         }}>
+          {selected.length === 1 && (
+            <Pressable android_ripple={{
+              borderless: true
+            }} onPress={() => setAddCellModalData({
+              visible: true,
+              slotIdx: selected[0]
+            })} style={{
+              padding: 10
+            }}>
+              <Icon name="pencil" size={20} color='royalblue' />
+            </Pressable>
+          )}
           <Pressable android_ripple={{
             borderless: true
           }} onPress={() => handleDelete()} style={{
+            padding: 10,
             marginRight: 10
           }}>
-            <Icon color="red" name="trash-bin" size={20} />
+            <Text style={{
+              color: 'red'
+            }}>
+              Delete
+            </Text>
           </Pressable>
         </View>
       )
@@ -168,9 +191,7 @@ export default function EditTimetable({
         marginTop: 20,
         marginBottom: 10
       }}>
-        {addCellModalVisible && (
-          <AddTimetableCellModal visible={addCellModalVisible} onClose={handleClose} />
-        )}
+        <AddTimetableCellModal {...addCellModalData} onClose={handleClose} />
 
         <DayHighlighter editing={editing} />
 
@@ -188,9 +209,16 @@ export default function EditTimetable({
         scrollEnabled={false}
         data={timetable[editing]}
         renderItem={(props) => (
-          <EditCell handleLongPress={handleLongPress} handleClick={handleClick} isSelected={selected.includes(props.item.id)} {...props} />
+          <EditCell
+            slots={slots}
+            slotIdx={props.getIndex()!}
+            handleLongPress={handleLongPress}
+            handleClick={handleClick}
+            isSelected={selected.includes(props.getIndex()!)}
+            {...props}
+          />
         )}
-        keyExtractor={(item, idx) => `${item.id ? `${item.id}-${item.day}` : `-${item.day}-${idx}`}`}
+        keyExtractor={(item, idx) => `${item === null ? idx : `-${item.day}-${idx}`}`}
         onDragEnd={({ data }) => handleDragEnd(data)}
       />
     </View>

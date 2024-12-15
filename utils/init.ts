@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS timetable (
     subjectId INTEGER NOT NULL,
     day INTEGER NOT NULL CHECK(day BETWEEN 0 AND 6),
     idx INTEGER NOT NULL,
-    FOREIGN KEY(subjectId) REFERENCES subjects(id) ON DELETE RESTRICT
+    FOREIGN KEY(subjectId) REFERENCES subjects(id) ON DELETE RESTRICT,
+    UNIQUE(day, idx) ON CONFLICT REPLACE
 );
 CREATE INDEX IF NOT EXISTS idx_timetable_subject ON timetable(subjectId);
 CREATE INDEX IF NOT EXISTS idx_timetable_day_idx ON timetable(day, idx);

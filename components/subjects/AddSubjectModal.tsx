@@ -40,6 +40,8 @@ export default function AddSubjectModal({
         console.error(e);
       });
     }
+    setName('');
+    setShortName('');
   };
 
   return (

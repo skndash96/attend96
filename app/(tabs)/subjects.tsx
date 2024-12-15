@@ -43,7 +43,7 @@ export default function Subjects() {
         setSelected(newSelected);
       }
     } else {
-      // navigate to subject
+      // TODO: navigate to subject
     }
   };
 

@@ -21,7 +21,7 @@ export default function Cell({
         textAlign: 'center',
         fontSize: 13
       }}>
-        {shortName === "ENG" ? "ENGLISH" : shortName}
+        {shortName}
       </Text>
     </View>
   );

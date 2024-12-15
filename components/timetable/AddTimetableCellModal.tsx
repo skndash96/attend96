@@ -6,14 +6,15 @@ import SlideUpView from '../SlideUpView';
 
 interface AddTimetableCellModalProps {
   visible: boolean;
-  onClose: (item: number|null) => void;
+  onClose: (subjectId: number|null, slotIdx: number) => void;
+  slotIdx: number;
 }
 
 const screenWidth = Dimensions.get('screen').width;
 const screenHeight = Dimensions.get('screen').height;
 
 export default function AddTimetableCellModal({
-  visible, onClose
+  visible, onClose, slotIdx
 }: AddTimetableCellModalProps) {
   const db = useSQLiteContext();
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
@@ -30,7 +31,7 @@ export default function AddTimetableCellModal({
     <Modal
       animationType='none'
       visible={visible}
-      onRequestClose={() => onClose(null)}
+      onRequestClose={() => onClose(null, slotIdx)}
       transparent={true}
     >
       <View style={{
@@ -55,13 +56,13 @@ export default function AddTimetableCellModal({
             renderItem={({ item }) => (
               <Pressable android_ripple={{
                 color: "lightgray"
-              }} onPress={() => onClose(item.id)} style={{
+              }} onPress={() => onClose(item.id, slotIdx)} style={{
                 padding: 10,
                 borderBottomWidth: 1,
                 borderBottomColor: "lightgray"
               }}>
                 <Text>
-                  {item.name}
+                  {item.shortName} - {item.name}
                 </Text>
               </Pressable>
             )}
