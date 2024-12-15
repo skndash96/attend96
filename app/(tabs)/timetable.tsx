@@ -9,131 +9,35 @@ import { addCell, deleteCells, FullCell, getTimetable, orderCellsIdx } from "@/u
 import { useNavigation } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { BackHandler, Dimensions, Pressable, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { BackHandler, Dimensions, Pressable, ScrollView, Text, View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
+import EditSlots from "@/components/timetable/EditSlots";
+import EditTimetable from "@/components/timetable/EditTimetable";
+import { getAllSlots, Slot } from "@/utils/slots";
+import { displayTime } from "@/utils/functions";
 
 const screenWidth = Dimensions.get('screen').width;
 
 export default function Timetable() {
   const db = useSQLiteContext();
   const navigator = useNavigation();
-  //todo get this input from user
-  const timing = ["8:30", "9:20", "10:30", "11:20", "2:00", "2:40"];
 
   const [timetable, setTimetable] = useState<FullCell[][]>([]);
-  const [editing, setEditing] = useState(-1);
+  const [slots, setSlots] = useState<Slot[]>([]);
   const [counter, setCounter] = useState(0);
-  const [selected, setSelected] = useState<number[]>([]);
-  const [visible, setVisible] = useState(false);
+  const [editing, setEditing] = useState(0); //0 for no, 1 for timetable, 2 for slots
 
   const timetableRowCount = useMemo(() => {
     if (timetable.length === 0) return 0;
     else return Math.max(...timetable.map(tt => tt.length));
   }, [timetable]);
 
-  const handleEdit = (i?: number) => {
-    if (i !== undefined) {
-      setEditing(i);
-    } else {
-      setEditing(prev => prev === -1 ? 1 : -1);
-    }
-  };
-
-  const handleDelete = () => {
-    deleteCells(db, selected)
-      .then(() => {
-        setSelected([]);
-        setCounter(c => c + 1)
+  useEffect(() => {
+    getAllSlots(db)
+      .then(slots => {
+        setSlots(slots);
       })
       .catch(console.error);
-  };
-
-  useLayoutEffect(() => {
-    if (selected.length > 0) {
-      navigator.setOptions({
-        headerLeft: () => (
-          <Pressable android_ripple={{
-            borderless: true
-          }} onPress={() => setSelected([])} style={{
-            marginRight: 10
-          }}>
-            <Icon name="arrow-back" size={20} />
-          </Pressable>
-        ),
-        headerTitle: () => null,
-        headerRight: () => (
-          <View style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center'
-          }}>
-            <Pressable android_ripple={{
-              borderless: true
-            }} onPress={() => handleDelete()} style={{
-              marginRight: 10
-            }}>
-              <Icon color="red" name="trash-bin" size={20} />
-            </Pressable>
-          </View>
-        )
-      });
-    } else {
-      navigator.setOptions({
-        headerLeft: null,
-        headerTitle: null,
-        headerRight: () => (
-          <View style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center'
-          }}>
-            {editing >= 0 && (
-              <Pressable android_ripple={{
-                color: 'gray'
-              }} onPress={() => setVisible(true)} style={{
-                padding: 10,
-              }}>
-                <Icon color="royalblue" name="add" size={20} />
-              </Pressable>
-            )}
-
-            <Pressable android_ripple={{
-              color: 'gray'
-            }} onPress={() => handleEdit()} style={{
-              padding: 10,
-            }}>
-              <Text style={{
-                fontSize: 16,
-                color: 'royalblue',
-              }}>
-                {editing >= 0 ? "Done" : "Edit"}
-              </Text>
-            </Pressable>
-          </View>
-        )
-      });
-    }
-  }, [selected, editing]);
-
-  useLayoutEffect(() => {
-    const backPressHandler = () => {
-      if (selected.length > 0) {
-        setSelected([]);
-        return true;
-      }
-      if (editing >= 0) {
-        setEditing(-1);
-        return true;
-      }
-      return false;
-    };
-
-    BackHandler.addEventListener("hardwareBackPress", backPressHandler);
-
-    return () => BackHandler.removeEventListener("hardwareBackPress", backPressHandler);
-  }, [selected, editing]);
-
-  useEffect(() => {
     getTimetable(db)
       .then(tt => {
         setTimetable(tt);
@@ -141,86 +45,81 @@ export default function Timetable() {
       .catch(console.error);
   }, [counter]);
 
-  const handleDragEnd = useCallback((data: FullCell[]) => {
-    orderCellsIdx(db, data)
-      .then(() => setCounter(c => c + 1))
-      .catch(error => console.error(error));
+  useLayoutEffect(() => {
+    if (editing === 0) {
+      navigator.setOptions({
+        headerRight: () => (
+          <Pressable onPress={() => setEditing(1)} android_ripple={{
+            color: 'lightgray'
+          }} style={{
+            padding: 10
+          }}>
+            <Text style={{
+              color: 'royalblue'
+            }}>
+              Edit
+            </Text>
+          </Pressable>
+        )
+      });
+    }
   }, [editing]);
 
-  const handleClick = (itemId: number) => {
-    if (selected.length === 0) return;
-    else handleLongPress(itemId);
-  };
-
-  const handleLongPress = (itemId: number) => {
-    const newaddSubjectModal = [...selected];
-
-    const addSubjectModalIdx = newaddSubjectModal.indexOf(itemId);
-
-    if (addSubjectModalIdx === -1) newaddSubjectModal.push(itemId);
-    else {
-      newaddSubjectModal.splice(addSubjectModalIdx, 1);
-    }
-
-    setSelected(newaddSubjectModal);
-  };
-
-  const handleClose = (itemId: number|null) => {
-    if (itemId !== null) {
-      addCell(db, {
-        idx: timetable[editing].length,
-        day: editing,
-        subjectId: itemId
-      })
-      .then(() => {
-        setCounter(c => c + 1);
-      })
-      .catch(error => {
-        console.error(error);
-      })
-      .finally(() => {
-        setVisible(false);
-      });
-    } else {
-      setVisible(false);
-    }
-  };
-
-  if (editing >= 0) {
+  if (editing > 0) {
     return (
       <View style={{
         flex: 1
       }}>
-        {visible && (
-          <AddTimetableCellModal visible={visible} onClose={handleClose} />
-        )}
-
         <View style={{
           display: 'flex',
           flexDirection: 'row',
-          marginTop: 20,
+          gap: 10,
+          margin: 10
         }}>
-          <DayHighlighter editing={editing} />
-
-          {[1, 2, 3, 4, 5, 6, 0].map((i) => (
-            <DayCell
-              key={i}
-              dayIdx={i}
-              handleEdit={handleEdit}
-            />
-          ))}
+          <Pressable onPress={() => setEditing(1)} style={{
+            flex: 1,
+            padding: 10,
+            borderRadius: 20,
+            borderWidth: 1,
+            backgroundColor: 'white',
+            borderColor: editing === 1 ? 'royalblue' : 'transparent',
+          }}>
+            <Text style={{
+              textAlign: 'center',
+              color: editing === 1 ? 'royalblue' : 'black'
+            }}>
+              Timetable
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => setEditing(2)} style={{
+            flex: 1,
+            padding: 10,
+            borderRadius: 20,
+            borderWidth: 1,
+            backgroundColor: 'white',
+            borderColor: editing === 2 ? 'royalblue' : 'transparent',
+          }}>
+            <Text style={{
+              textAlign: 'center',
+              color: editing === 2 ? 'royalblue' : 'black'
+            }}>
+              Slots
+            </Text>
+          </Pressable>
         </View>
 
-        <DraggableFlatList
-          activationDistance={0}
-          scrollEnabled={false}
-          data={timetable[editing]}
-          renderItem={(props) => (
-            <EditCell handleLongPress={handleLongPress} handleClick={handleClick} isSelected={selected.includes(props.item.id)} {...props} />
-          )}
-          keyExtractor={(item, idx) => `${item.id ? `${item.id}-${item.day}` : `-${item.day}-${idx}`}`}
-          onDragEnd={({ data }) => handleDragEnd(data)}
-        />
+        {editing === 1 ? (
+          <EditTimetable
+            setVisible={(isOpen: boolean) => setEditing(isOpen ? 1 : 0)}
+            timetable={timetable}
+            updateTimetable={() => setCounter(c => c + 1)}
+          />
+        ) : (
+          <EditSlots
+            setVisible={(isOpen: boolean) => setEditing(isOpen ? 2 : 0)}
+            updateTimetable={() => setCounter(c => c + 1)}
+          />
+        )}
       </View>
     );
   }
@@ -271,7 +170,7 @@ export default function Timetable() {
               transformOrigin: 'left',
               transform: [{ rotate: '-90deg' }, { translateX: '-50%' }]
             }}>
-              {timing[i]} pm
+              {slots.length > i ? displayTime(slots[i].startTime) : `Slot ${i+1}`}
             </Text>
             {[1, 2, 3, 4, 5, 6, 0].map(j => (
               <Cell

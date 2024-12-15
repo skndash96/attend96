@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useLayoutEffect, useState } from 'react'
 import { Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { ScaleDecorator } from 'react-native-draggable-flatlist'
 import Icon from '../Icon'
+import { getSlotByIdx, Slot } from '@/utils/slots'
+import { FullCell } from '@/utils/timetable'
+import { useSQLiteContext } from 'expo-sqlite'
+import { displayTime } from '@/utils/functions'
 
 export default function EditCell({
   item,
@@ -11,13 +15,22 @@ export default function EditCell({
   handleLongPress,
   drag
 }: {
-  item: any,
+  item: FullCell,
   isSelected: boolean,
   isActive: boolean,
   handleClick: (itemId: number) => void,
   handleLongPress: (itemId: number) => void,
   drag: () => void
 }) {
+  const db = useSQLiteContext();
+  const [slot, setSlot] = useState<Slot|null>(null);
+
+  useLayoutEffect(() => {
+    getSlotByIdx(db, item.idx)
+    .then(s => setSlot(s))
+    .catch(console.error);
+  }, []);
+
   return (
     <View style={{
       display: 'flex',
@@ -49,12 +62,17 @@ export default function EditCell({
         color: 'gray'
       }} onPress={() => handleClick(item.id)} onLongPress={() => handleLongPress(item.id)} style={{
         flex: 1,
-        height: 50,
-        padding: 12,
+        padding: 15,
         overflow: 'hidden'
       }}>
+        <Text style={{
+          fontWeight: 'bold',
+          marginBottom: 5
+        }}>
+          {item.subjectName}
+        </Text>
         <Text>
-          {item.subjectName || "--"}
+          {slot ? `${displayTime(slot.startTime)} - ${displayTime(slot.startTime + slot.duration)}` : `Slot ${item.idx+1}`}
         </Text>
       </Pressable>
     </View>

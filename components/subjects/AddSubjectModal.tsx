@@ -1,29 +1,45 @@
-import React from 'react'
-import { Alert, Button, Modal, Pressable, Text, TextInput, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Modal, Pressable, Text, TextInput, View } from 'react-native'
 import SlideUpView from '../SlideUpView'
-import { createSubject } from '@/utils/subjects';
+import { createSubject, Subject, updateSubject } from '@/utils/subjects';
 import { useSQLiteContext } from 'expo-sqlite';
 
 export default function AddSubjectModal({
   visible,
-  onClose
+  onClose,
+  editing
 }: {
+  editing: Subject | null,
   visible: boolean,
   onClose: (added?: boolean) => void
 }) {
   const db = useSQLiteContext();
-  const [name, setName] = React.useState('');
-  const [shortName, setShortName] = React.useState('');
+  const [name, setName] = useState('');
+  const [shortName, setShortName] = useState('');
+
+  useEffect(() => {
+    setName(editing === null ? '' : editing.name);
+    setShortName(editing === null ? '' : editing.shortName);
+  }, [editing]);
 
   const handleOnSubmit = () => {
-    createSubject(db, name, shortName)
-    .then(() => {
-      onClose(true);
-    })
-    .catch(e => {
-      Alert.alert('Error', 'An error occurred while adding the subject');
-      console.error(e);
-    });
+    if (editing) {
+      updateSubject(db, editing, { name, shortName })
+      .then(() => {
+        onClose(true);
+      })
+      .catch(e => {
+        console.error(e);
+      });
+    } else {
+      createSubject(db, name, shortName)
+      .then(() => {
+        onClose(true);
+      })
+      .catch(e => {
+        console.error(e);
+      });
+    }
   };
 
   return (
@@ -48,12 +64,12 @@ export default function AddSubjectModal({
             fontSize: 16,
             fontWeight: 'bold'
           }}>
-            Add a new subject
+            {editing ? 'Edit Subject' : 'Add Subject'}
           </Text>
 
           <View>
             <Text>Name</Text>
-            <TextInput value={name} onChangeText={t => setName(t)} placeholder='Physics' style={{
+            <TextInput value={name} defaultValue={name} onChangeText={t => setName(t)} placeholder='Physics' style={{
               backgroundColor: 'rgba(0, 0, 0, 0.1)',
               padding: 10,
               borderRadius: 5,
@@ -63,7 +79,7 @@ export default function AddSubjectModal({
 
           <View>
             <Text>Short Name</Text>
-            <TextInput value={shortName} onChangeText={t => setShortName(t)} placeholder='Phy' style={{
+            <TextInput value={shortName} defaultValue={shortName} onChangeText={t => setShortName(t)} placeholder='Phy' style={{
               backgroundColor: 'rgba(0, 0, 0, 0.1)',
               padding: 10,
               borderRadius: 5,
@@ -83,7 +99,7 @@ export default function AddSubjectModal({
               color: 'white',
               textAlign: 'center'
             }}>
-              Add
+              {editing ? 'Update' : 'Add'}
             </Text>
           </Pressable>
         </SlideUpView>

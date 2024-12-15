@@ -4,7 +4,7 @@ export interface Subject {
   id: number;
   idx: number; //-1 for deleted
   name: string;
-  shortName?: string;
+  shortName: string;
 }
 
 export const getSubjects = async (db: SQLiteDatabase) => {
@@ -66,13 +66,21 @@ export const orderSubjectsIdx = async (db: SQLiteDatabase, subjects: Subject[]) 
   await db.execAsync(q);
 };
 
-export const updateSubject = async (db: SQLiteDatabase, id: number, name: string, shortName: string) => {
-  const res = await db.runAsync(`
-    UPDATE subjects
-    SET name = ?, shortName = ?
-    WHERE id = ?`,
-    [name, shortName, id]
-  );
+export const updateSubject = async (db: SQLiteDatabase, from: Subject, { name, shortName } : { name?: string, shortName?: string }) => {
+  let q = `UPDATE subjects SET `;
+  
+  const initQLength = q.length;
+  
+  if (name && name !== from.name) q += `name = '${name}', `;
+  if (shortName && shortName !== from.shortName) q += `shortName = '${shortName}', `;
+
+  //no set values
+  if (q.length === initQLength) return 0;
+  
+  q = q.slice(0, -2);
+  q += ` WHERE id = ${from.id}`;
+
+  const res = await db.runAsync(q);
 
   return res.changes;
 };

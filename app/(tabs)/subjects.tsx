@@ -15,6 +15,7 @@ export default function Subjects() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [visible, setVisible] = useState(false);
+  const [editing, setEditing] = useState<Subject | null>(null);
   const [isReordering, setIsReordering] = useState(false);
   const [counter, setCounter] = useState(0);
 
@@ -49,9 +50,12 @@ export default function Subjects() {
   const handleClose = (added?: boolean) => {
     if (added) {
       getSubjects(db)
-        .then(s => setSubjects(s))
-        .catch(e => console.log(e));
+      .then(s => setSubjects(s))
+      .catch(e => console.log(e));
     }
+
+    setSelected([]);
+    setEditing(null);
     setVisible(false);
   };
 
@@ -74,6 +78,23 @@ export default function Subjects() {
   }, [selected]);
 
   useEffect(() => {
+    if (selected.length > 0) {
+      navigator.setOptions({
+        headerTitle: () => null,
+        headerLeft: () => (
+          <Pressable android_ripple={{
+            color: 'lightgray'
+          }} onPress={() => setSelected([])}>
+            <Icon name='arrow-back' size={20} />
+          </Pressable>
+        )
+      });
+    } else {
+      navigator.setOptions({
+        headerLeft: null,
+        headerTitle: null
+      });
+    }
     navigator.setOptions({
       headerRight: () => (
         <View style={{
@@ -82,13 +103,28 @@ export default function Subjects() {
           alignItems: "center",
           marginRight: 5
         }}>
-          {!isReordering && (
+          {!isReordering && selected.length === 0 && (
             <Pressable android_ripple={{
               color: "lightgray"
             }} style={{
               padding: 10
             }} onPress={() => setVisible(true)}>
               <Icon name="add" color='royalblue' size={20} />
+            </Pressable>
+          )}
+          {selected.length === 1 && (
+            <Pressable android_ripple={{
+              color: "lightgray"
+            }} style={{
+              padding: 10
+            }} onPress={() => {
+              const sub = subjects.find(s => s.id === selected[0]);
+              if (!sub) return;
+
+              setEditing(sub);
+              setVisible(true);
+            }}>
+              <Icon name="pencil" color='royalblue' size={20} />
             </Pressable>
           )}
           {selected.length > 0 ? (
@@ -158,7 +194,12 @@ export default function Subjects() {
       display: "flex",
       flexDirection: "column"
     }}>
-      <AddSubjectModal visible={visible} onClose={handleClose} />
+      <AddSubjectModal
+        editing={editing}
+        visible={visible}
+        onClose={handleClose}
+      />
+
       {subjects.map(s => (
         <SubjectComponent
           isSelected={selected.includes(s.id)}
