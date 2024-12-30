@@ -4,9 +4,11 @@ import { Dimensions, Text, View } from 'react-native'
 const screenWidth = Dimensions.get('screen').width;
 
 export default function Cell({
-  shortName
+  shortName,
+  highlight
 }: {
-  shortName: string
+  shortName: string,
+  highlight?: boolean
 }) {
   return (
     <View style={{
@@ -15,7 +17,7 @@ export default function Cell({
       borderRadius: 10,
       justifyContent: 'center',
       marginBottom: 2,
-      backgroundColor: "lightgray"
+      backgroundColor: highlight ? "lightblue" : "lightgray"
     }}>
       <Text style={{
         textAlign: 'center',

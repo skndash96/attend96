@@ -13,7 +13,7 @@ export const getAllSlots = async (db: SQLiteDatabase) => {
   const res = await db.getAllAsync<Slot>(`
   SELECT *
   FROM slots
-  ORDER BY idx  
+  ORDER BY startTime, idx
   `);
 
   return res;

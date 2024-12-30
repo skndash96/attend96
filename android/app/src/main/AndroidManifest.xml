@@ -26,6 +26,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="com.skndash96.attend96"/>
+        <data android:scheme="exp+attend96"/>
       </intent-filter>
     </activity>
   </application>

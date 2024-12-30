@@ -15,6 +15,7 @@ const screenWidth = Dimensions.get('screen').width;
 export default function Timetable() {
   const db = useSQLiteContext();
   const navigator = useNavigation();
+  const currentDay = new Date().getDay();
 
   const [timetable, setTimetable] = useState<(FullCell | null)[][]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -170,6 +171,7 @@ export default function Timetable() {
             {[1, 2, 3, 4, 5, 6, 0].map(j => (
               <Cell
                 key={j}
+                highlight={j === currentDay}
                 shortName={timetable[j]?.[i]?.subjectShortName || ""}
               />
             ))}

@@ -38,7 +38,7 @@ export const getFullCells = async (db: SQLiteDatabase) => {
 };
 
 export const getTimetableOfDay = async (db: SQLiteDatabase, day: number) => {
-  const res = await db.getAllAsync<FullCell>(`
+  const cells = await db.getAllAsync<FullCell>(`
     SELECT 
       timetable.*, 
       subjects.name as subjectName, 
@@ -49,6 +49,22 @@ export const getTimetableOfDay = async (db: SQLiteDatabase, day: number) => {
     WHERE day = ?
     ORDER BY idx ASC
   `, [day]);
+
+  const res = [] as (FullCell|null)[];
+  
+  for (let i = 0; i < cells.length; i++) {
+    while (res.length < cells[i].idx) {
+      res.push(null);
+    }
+    
+    res.push(cells[i]);
+  }
+  
+  const slotsCount = await getAllSlotsCount(db);
+  
+  while (res.length < slotsCount) {
+    res.push(null);
+  }
 
   return res;
 };

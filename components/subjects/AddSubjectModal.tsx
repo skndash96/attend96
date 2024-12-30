@@ -71,7 +71,7 @@ export default function AddSubjectModal({
 
           <View>
             <Text>Name</Text>
-            <TextInput value={name} defaultValue={name} onChangeText={t => setName(t)} placeholder='Physics' style={{
+            <TextInput value={name} defaultValue={name} onChangeText={t => setName(t)} placeholder='Subject' style={{
               backgroundColor: 'rgba(0, 0, 0, 0.1)',
               padding: 10,
               borderRadius: 5,
@@ -81,7 +81,7 @@ export default function AddSubjectModal({
 
           <View>
             <Text>Short Name</Text>
-            <TextInput value={shortName} defaultValue={shortName} onChangeText={t => setShortName(t)} placeholder='Phy' style={{
+            <TextInput value={shortName} defaultValue={shortName} onChangeText={t => setShortName(t)} placeholder='SUB (3-4 letters)' style={{
               backgroundColor: 'rgba(0, 0, 0, 0.1)',
               padding: 10,
               borderRadius: 5,
