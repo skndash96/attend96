@@ -4,9 +4,9 @@ import { Dimensions, View } from 'react-native'
 const screenWidth = Dimensions.get('screen').width;
 
 export default function DayHighlighter({
-  editing
+  editingDayIdx
 }: {
-  editing: number
+  editingDayIdx: number
 }) {
   return (
     <View style={{
@@ -14,7 +14,7 @@ export default function DayHighlighter({
       height: 40,
       backgroundColor: "lightgray",
       position: 'absolute',
-      left: (editing - 1 + 7) % 7 * screenWidth / 7,
+      left: (editingDayIdx - 1 + 7) % 7 * screenWidth / 7,
       borderRadius: 10,
       borderBottomColor: "royalblue",
       borderBottomWidth: 3,

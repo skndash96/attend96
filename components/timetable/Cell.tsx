@@ -12,7 +12,7 @@ export default function Cell({
 }) {
   return (
     <View style={{
-      width: screenWidth / 7 - 8,
+      width: screenWidth / 7 - 4.5,
       height: 72,
       borderRadius: 10,
       justifyContent: 'center',

@@ -4,39 +4,39 @@ import AddTimetableCellModal from './AddTimetableCellModal'
 import DayHighlighter from './DayHighlighter'
 import DayCell from './DayCell'
 import DraggableFlatList from 'react-native-draggable-flatlist'
-import { addCell, deleteCells, FullCell, orderCellsIdx } from '@/utils/timetable'
+import { deleteCells, FullCell, orderCellsIdx } from '@/utils/timetable'
 import EditCell from './EditCell'
 import { useSQLiteContext } from 'expo-sqlite'
 import { useNavigation } from 'expo-router'
 import Icon from '../Icon'
-import { getAllSlots, Slot } from '@/utils/slots'
+import { Subject } from '@/utils/subjects'
 
 export default function EditTimetable({
   setVisible,
   updateTimetable,
-  slots,
   timetable,
+  subjects
 }: {
   setVisible: (b: boolean) => void,
-  slots: Slot[],
-  timetable: (FullCell | null)[][],
+  timetable: FullCell[][],
+  subjects: Subject[],
   updateTimetable: () => void,
 }) {
   const db = useSQLiteContext();
   const navigator = useNavigation();
-  const [editing, setEditing] = useState(1);
+  const [editingDayIdx, setEditingDayIdx] = useState(1);
   const [selected, setSelected] = useState<(number)[]>([]); // selected slot index
 
-  interface AddCellModalData {
-    slotIdx: number,
-    visible: boolean
-  }
-  const [addCellModalData, setAddCellModalData] = useState<AddCellModalData>({
-    visible: false,
-    slotIdx: -1
-  });
+  const [addCellModalVisible, setAddCellModalVisible] = useState(false);
 
-  const handleDragEnd = useCallback((data: (FullCell | null)[]) => {
+  const handleClose = (updated: boolean) => {
+    setAddCellModalVisible(false);
+    setSelected([]);
+
+    if (updated) updateTimetable();
+  };
+
+  const handleDragEnd = useCallback((data: FullCell[]) => {
     orderCellsIdx(db, data)
       .then(() => updateTimetable())
       .catch(error => console.error(error));
@@ -60,32 +60,8 @@ export default function EditTimetable({
     setSelected(newSelected);
   };
 
-  const handleClose = async (subjectId: number|null, slotIdx: number) => {
-    if (subjectId !== null) {
-      await addCell(db, {
-        idx: slotIdx ?? timetable[editing].length,
-        day: editing,
-        subjectId
-      })
-        .then(() => {
-          updateTimetable();
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    }
-
-    setAddCellModalData(p => ({
-      slotIdx: -1,
-      visible: false
-    }));
-    setSelected([]);
-  };
-
   const handleDelete = () => {
-    const toDelete = selected.filter(s => timetable[editing][s] !== null);
-
-    deleteCells(db, toDelete.map(s => timetable[editing][s]!.id))
+    deleteCells(db, selected.map(s => timetable[editingDayIdx][s].id))
       .then(() => {
         setSelected([]);
         updateTimetable();
@@ -107,7 +83,7 @@ export default function EditTimetable({
     BackHandler.addEventListener("hardwareBackPress", backPressHandler);
 
     return () => BackHandler.removeEventListener("hardwareBackPress", backPressHandler);
-  }, [selected, editing]);
+  }, [selected, editingDayIdx]);
 
   useLayoutEffect(() => {
     if (selected.length === 0) {
@@ -157,10 +133,7 @@ export default function EditTimetable({
           {selected.length === 1 && (
             <Pressable android_ripple={{
               borderless: true
-            }} onPress={() => setAddCellModalData({
-              visible: true,
-              slotIdx: selected[0]
-            })} style={{
+            }} onPress={() => setAddCellModalVisible(true)} style={{
               padding: 10
             }}>
               <Icon name="pencil" size={20} color='royalblue' />
@@ -191,15 +164,22 @@ export default function EditTimetable({
         marginTop: 20,
         marginBottom: 10
       }}>
-        <AddTimetableCellModal {...addCellModalData} onClose={handleClose} />
+        <AddTimetableCellModal
+          subjects={subjects}
+          visible={addCellModalVisible}
+          editCell={selected.length === 1 ? timetable[editingDayIdx][selected[0]] : null}
+          cells={timetable[editingDayIdx]}
+          onClose={handleClose}
+          dayIdx={editingDayIdx}
+        />
 
-        <DayHighlighter editing={editing} />
+        <DayHighlighter editingDayIdx={editingDayIdx} />
 
         {[1, 2, 3, 4, 5, 6, 0].map((i) => (
           <DayCell
             key={i}
             dayIdx={i}
-            handleEdit={() => setEditing(i)}
+            handleEdit={() => setEditingDayIdx(i)}
           />
         ))}
       </View>
@@ -207,10 +187,9 @@ export default function EditTimetable({
       <DraggableFlatList
         activationDistance={0}
         scrollEnabled={false}
-        data={timetable[editing]}
+        data={timetable[editingDayIdx]}
         renderItem={(props) => (
           <EditCell
-            slots={slots}
             slotIdx={props.getIndex()!}
             handleLongPress={handleLongPress}
             handleClick={handleClick}
@@ -221,6 +200,23 @@ export default function EditTimetable({
         keyExtractor={(item, idx) => `${item === null ? idx : `-${item.day}-${idx}`}`}
         onDragEnd={({ data }) => handleDragEnd(data)}
       />
+
+      <View>
+        <Pressable android_ripple={{
+          color: 'gray'
+        }} onPress={() => setAddCellModalVisible(true)} style={{
+          padding: 10,
+          margin: 10,
+          borderRadius: 10,
+          backgroundColor: 'lightgray'
+        }}>
+          <Text style={{
+            textAlign: 'center'
+          }}>
+            Add Cell
+          </Text>
+        </Pressable>
+      </View>
     </View>
   )
 }

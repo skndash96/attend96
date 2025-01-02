@@ -2,7 +2,6 @@ import React, { useLayoutEffect, useState } from 'react'
 import { Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { ScaleDecorator } from 'react-native-draggable-flatlist'
 import Icon from '../Icon'
-import { getSlotByIdx, Slot } from '@/utils/slots'
 import { FullCell } from '@/utils/timetable'
 import { useSQLiteContext } from 'expo-sqlite'
 import { displayTime } from '@/utils/functions'
@@ -13,21 +12,18 @@ export default function EditCell({
   isActive,
   handleClick,
   handleLongPress,
-  slots,
   slotIdx,
   drag
 }: {
-  item: FullCell | null,
+  item: FullCell,
   isSelected: boolean,
   isActive: boolean,
-  slots: Slot[],
   slotIdx: number,
   handleClick: (slotIdx: number) => void,
   handleLongPress: (slotIdx: number) => void,
   drag: () => void
 }) {
   const db = useSQLiteContext();
-  const slot = slots[slotIdx ?? item?.idx ?? 0];
 
   return (
     <View style={{
@@ -62,16 +58,16 @@ export default function EditCell({
         flex: 1,
         padding: 15,
         overflow: 'hidden',
-        opacity: item ? 1 : 0.5
+        opacity: item.subjectId === null ? 0.5 : 1
       }}>
         <Text style={{
           fontWeight: 'bold',
           marginBottom: 5
         }}>
-          {item?.subjectName || "Empty"}
+          {item.subjectName || "Empty"}
         </Text>
         <Text>
-          Slot {item ? item.idx + 1 : slotIdx ? slotIdx + 1 : ''} {slot && `(${displayTime(slot.startTime)} - ${displayTime(slot.startTime + slot.duration)})`}
+          Slot {item.idx + 1} {`(${displayTime(item.startTime)} - ${displayTime(item.startTime + item.duration)})`}
         </Text>
       </Pressable>
     </View>

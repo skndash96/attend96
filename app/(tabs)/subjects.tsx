@@ -3,6 +3,7 @@ import AddSubjectModal from '@/components/subjects/AddSubjectModal';
 import ReorderingSubject from '@/components/subjects/ReorderingSubject';
 import SubjectComponent from '@/components/subjects/Subject';
 import { getSubjects, orderSubjectsIdx, Subject } from '@/utils/subjects'
+import { useIsFocused } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useLayoutEffect, useState } from 'react'
@@ -12,6 +13,7 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 export default function Subjects() {
   const db = useSQLiteContext();
   const navigator = useNavigation();
+  const isFocused = useIsFocused();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [visible, setVisible] = useState(false);
@@ -23,7 +25,7 @@ export default function Subjects() {
     getSubjects(db)
       .then(s => setSubjects(s))
       .catch(e => console.log(e));
-  }, [counter]);
+  }, [counter, isFocused]);
 
   const handleLongPress = (id: number) => {
     if (selected.length == 0) {

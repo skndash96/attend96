@@ -1,24 +1,28 @@
-import { displayTime, displayTimeSinceEpoch } from '@/utils/functions'
+import { displayTime, displayTimeSinceEpoch, getSubjectAttendanceInfo } from '@/utils/functions'
 import { FullAttendanceRecord, Status, updateRecordStatus } from '@/utils/records'
-import { Slot } from '@/utils/slots'
 import { useSQLiteContext } from 'expo-sqlite'
 import React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import Icon from '../Icon'
+import { getCriteria } from '@/utils/misc'
 
 export default function SubjectRecord({
   record,
-  slot,
   onStatusChange
 }: {
   record: FullAttendanceRecord,
-  slot: Omit<Omit<Slot, 'id'>, 'idx'>,
   onStatusChange: () => void
 }) {
   const db = useSQLiteContext();
+  const criteria = getCriteria();
+  const { ratio, text, color } = getSubjectAttendanceInfo({
+    total: record.subjectTotal ?? 0,
+    present: record.subjectPresent ?? 0,
+    off: record.subjectOff ?? 0
+  }, criteria);
 
   const handleStatusChange = (status: Status) => {
-    updateRecordStatus(db, record.id, status === record.status ? null : status)
+    updateRecordStatus(db, record, status === record.status ? null : status)
       .then(() => {
         onStatusChange();
         console.log("Updated", record.id, status);
@@ -28,34 +32,76 @@ export default function SubjectRecord({
 
   return (
     <View style={{
-      margin: 10,
       padding: 10,
       borderWidth: 1,
-      borderColor: "lightgray",
       borderRadius: 10,
-      opacity: record.subjectId === null ? 0.5 : 1
+      margin: 10,
+      marginBottom: 5,
+      borderColor: "lightgray",
+      opacity: record.subjectId === null ? 0.5 : 1,
     }}>
-      <Text style={{
-        fontWeight: "bold"
+      <View style={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center"
       }}>
-        {record?.subjectName || "Free Slot"}
-      </Text>
+        <View style={{
+          marginRight: 10,
+          padding: 10,
+          backgroundColor: '#e0e0e0',
+          borderRadius: 100,
+          width: 60,
+          height: 60
+        }}>
+          <Text style={{
+            fontSize: 14,
+            textAlign: "center",
+            marginTop: -4,
+            paddingBottom: 2,
+            marginBottom: 2,
+            borderBottomWidth: 1,
+            borderBottomColor: color,
+            color
+          }}>
+            {ratio}
+          </Text>
+
+          <Text style={{
+            textAlign: "center",
+            color
+          }}>
+            {criteria}
+          </Text>
+        </View>
+
+        <View>
+          <Text style={{
+            fontSize: 16
+          }}>
+            {record.subjectName}
+          </Text>
+
+          <Text style={{
+            marginTop: 2,
+            fontSize: 12
+          }}>
+            {displayTimeSinceEpoch(record.startTimeMinsSinceEpoch)} - {displayTimeSinceEpoch(record.startTimeMinsSinceEpoch + record.durationMins)}
+          </Text>
+        </View>
+      </View>
 
       <View style={{
-        marginTop: 10,
+        marginTop: 20,
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between"
       }}>
-        <View>
-          <Text>
-            {record ? (
-              `${displayTimeSinceEpoch(record.startTimeMinsSinceEpoch)} - ${displayTimeSinceEpoch(record.startTimeMinsSinceEpoch + record.durationMins)}`
-            ) : (
-              `${displayTime(slot.startTime)} - ${displayTime(slot.startTime + slot.duration)}`
-            )}
-          </Text>
-        </View>
+        <Text style={{
+          fontSize: 12,
+          color: '#666'
+        }}>
+          {text}
+        </Text>
 
         {record.subjectId && (
           <View style={{

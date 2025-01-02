@@ -1,11 +1,12 @@
 import { SQLiteDatabase } from "expo-sqlite";
-import { getAllSlotsCount } from "./slots";
 
 export interface Cell {
   id: number
-  subjectId: number
+  subjectId: number | null
   day: number // 0-6 (Sun-Sat)
   idx: number
+  startTime: number //minutes from 00:00
+  duration: number //minutes
 }
 
 export interface FullCell extends Cell {
@@ -38,66 +39,29 @@ export const getFullCells = async (db: SQLiteDatabase) => {
 };
 
 export const getTimetableOfDay = async (db: SQLiteDatabase, day: number) => {
-  const cells = await db.getAllAsync<FullCell>(`
+  return await db.getAllAsync<FullCell>(`
     SELECT 
       timetable.*, 
       subjects.name as subjectName, 
       subjects.shortName as subjectShortName
     FROM timetable
-    JOIN subjects
+    LEFT JOIN subjects
       ON timetable.subjectId = subjects.id
     WHERE day = ?
     ORDER BY idx ASC
   `, [day]);
-
-  const res = [] as (FullCell|null)[];
-  
-  for (let i = 0; i < cells.length; i++) {
-    while (res.length < cells[i].idx) {
-      res.push(null);
-    }
-    
-    res.push(cells[i]);
-  }
-  
-  const slotsCount = await getAllSlotsCount(db);
-  
-  while (res.length < slotsCount) {
-    res.push(null);
-  }
-
-  return res;
 };
 
 export const getTimetable = async (db: SQLiteDatabase) => {
-  const cells = await getFullCells(db);
-
-  const timetable: (FullCell|null)[][] = [[], [], [], [], [], [], []];
-
-  for (let cell of cells) {
-    let k = timetable[cell.day].length;
-    while (k < cell.idx) {
-      timetable[cell.day].push(null);
-      k++;
-    }
-
-    timetable[cell.day].push(cell);
-  }
-
-  const slotsCount = await getAllSlotsCount(db);
-  for (let i = 0; i < 7; i++) {
-    while (timetable[i].length < slotsCount) {
-      timetable[i].push(null);
-    }
-  }
-
-  return timetable;
+  return await Promise.all([0,1,2,3,4,5,6].map(day => {
+    return getTimetableOfDay(db, day);
+  }));
 };
 
-export const orderCellsIdx = async (db: SQLiteDatabase, cells: (FullCell | null)[]) => {
-  const day = cells.find(c => c !== null)!.day;
+export const orderCellsIdx = async (db: SQLiteDatabase, cells: FullCell[]) => {
+  const day = cells[0].day;
   
-  const dayValidation = cells.every(c => c === null || c!.day === day);
+  const dayValidation = cells.every(c => c.day === day);
   if (!dayValidation) {
     throw new Error("All cells must be of the same day");
   }
@@ -123,13 +87,27 @@ export const orderCellsIdx = async (db: SQLiteDatabase, cells: (FullCell | null)
   return cells.length;
 };
 
-export const addCell = async (db: SQLiteDatabase, cell: Omit<Cell, "id">) => {
+export const addCell = async (db: SQLiteDatabase, cell: Omit<Omit<Cell, "id">, 'idx'>) => {
+  const cells = await getTimetableOfDay(db, cell.day);
+  
+  const idx = Math.max(...cells.map(c => c.idx), -1) + 1;
+
   const res = await db.runAsync(`
-    INSERT INTO timetable (subjectId, day, idx)
-    VALUES (?, ?, ?)
-  `, [cell.subjectId, cell.day, cell.idx]);
+    INSERT INTO timetable (subjectId, day, idx, startTime, duration)
+    VALUES (?, ?, ?, ?, ?)
+  `, [cell.subjectId, cell.day, idx, cell.startTime, cell.duration]);
 
   return res.lastInsertRowId;
+};
+
+export const updateCell = async (db: SQLiteDatabase, cell: Omit<Omit<Cell, 'day'>, 'idx'>) => {
+  const res = await db.runAsync(`
+    UPDATE timetable
+    SET startTime = ?, duration = ?, subjectId = ?
+    WHERE id = ?
+  `, [cell.startTime, cell.duration, cell.subjectId, cell.id]);
+
+  return res.changes;
 };
 
 export const deleteCells = async (db: SQLiteDatabase, ids: (number)[]) => {
