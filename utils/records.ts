@@ -29,7 +29,7 @@ export const getFullRecordsOfToday = async (db: SQLiteDatabase, cells: FullCell[
 
 export const getFullRecordsOfDate = async (db: SQLiteDatabase, date: number, cells: FullCell[], retry: boolean): Promise<FullAttendanceRecord[]> => {
   const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
+  d.setUTCHours(0, 0, 0, 0);
 
   const depoch = d.getTime() / 1000 / 60;
 

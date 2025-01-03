@@ -10,7 +10,7 @@ import { checkIntervals, Time, toTime } from '@/utils/functions';
 import { addCell, Cell, updateCell } from '@/utils/timetable';
 import { FlatList } from 'react-native-gesture-handler';
 import Icon from '../Icon';
-import Toast, { BaseToast } from "react-native-toast-message";
+import Toast from 'react-native-simple-toast';
 
 const screenWidth = Dimensions.get('screen').width;
 const screenHeight = Dimensions.get('screen').height;
@@ -48,19 +48,14 @@ export default function AddCellModalData({
   const [page, setPage] = useState<number>(0);
   const [toastVisible, setToastVisible] = useState<boolean>(false);
   const handleAdd = () => {
-    //TODO check overlapping intervals
     const intervalsOk = checkIntervals(cells, {
       startTime: startTime.hours * 60 + startTime.minutes,
       duration: duration.hours * 60 + duration.minutes
     });
 
     if (!intervalsOk) {
-      Toast.show({
-        type: 'error',
-        text1: 'Time Interval is overlapping other Intervals',
-        text2: 'Are you sure you entered correct timings?'
-      });
-
+      Toast.show('Time Interval is overlapping other Intervals', 2500);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
 
@@ -114,23 +109,6 @@ export default function AddCellModalData({
           borderRadius: 10,
           position: 'relative'
         }}>
-          <Toast
-            position='top'
-            config={{
-              error: props => <BaseToast
-                {...props}
-                style={{
-                  borderLeftColor: 'red',
-                  borderLeftWidth: 5,
-                  backgroundColor: 'white',
-                  position: 'absolute',
-                  bottom: -50,
-                }}
-              />
-            }}
-            visibilityTime={2500}
-          />
-
           <Text style={{
             padding: 10,
             fontSize: 18,

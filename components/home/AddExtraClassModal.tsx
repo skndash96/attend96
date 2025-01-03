@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FlatList, Modal, Pressable, Text, View } from 'react-native'
+import { FlatList, Modal, Pressable, Text, ToastAndroid, View } from 'react-native'
 import SlideUpView from '../SlideUpView'
 import { FullCell } from '@/utils/timetable';
 import { Subject } from '@/utils/subjects';
@@ -10,24 +10,27 @@ import { checkIntervals, startTimeToEpochStartTime, Time, toTime } from '@/utils
 import * as Haptics from 'expo-haptics';
 import { FullAttendanceRecord, insertRecord } from '@/utils/records';
 import { useSQLiteContext } from 'expo-sqlite';
+import Toast from 'react-native-simple-toast';
 
 export default function AddExtraClassModal({
   subjects,
   visible,
   onClose,
-  lastCell,
+  cells,
   addAtDayTimestamp
 }: {
   subjects: Subject[],
   visible: boolean,
   onClose: (added: boolean) => void,
-  lastCell: {
+  cells: {
     startTime: number,
     duration: number,
-  } | null,
+  }[],
   addAtDayTimestamp: number
 }) {
   const db = useSQLiteContext();
+
+  const lastCell = cells.length > 0 ? cells[cells.length-1] : null;
 
   const [page, setPage] = useState(0);
 
@@ -35,7 +38,10 @@ export default function AddExtraClassModal({
     id: -1,
     idx: -1,
     name: "Free Slot",
-    shortName: "Free Slot"
+    shortName: "Free Slot",
+    total: 0,
+    present: 0,
+    off: 0
   };
 
   const initialStartTime = toTime(lastCell !== null ? lastCell.startTime + lastCell.duration : 510); //8:30am
@@ -46,7 +52,16 @@ export default function AddExtraClassModal({
   const [duration, setDuration] = useState<Time>(initialDuration);
 
   const handleAdd = () => {
-    //TODO check overlapping intervals
+    // check overlapping intervals
+    // if (!checkIntervals(cells, {
+    //   startTime: startTime.hours * 60 + startTime.minutes,
+    //   duration: duration.hours * 60 + duration.minutes
+    // })) {
+    //   console.error("Overlapping intervals");
+    //   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    //   Toast.show('Intervals are overlapping other slots', 2500);
+    //   return;
+    // }
 
     insertRecord(db, {
       subjectId: subject.id === -1 ? null : subject.id,

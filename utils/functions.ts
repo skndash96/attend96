@@ -46,11 +46,11 @@ export const checkIntervals = (cells: Interval[], x: Interval) => {
 export const epochStartTimeToStartTime = (t: number) => {
   const d = new Date(t * 60 * 1000);
   
-  return t - d.setHours(0,0,0,0)/1000/60;
+  return t - d.setUTCHours(0,0,0,0)/1000/60;
 }
 
 export const startTimeToEpochStartTime = (t: number, dayTimestamp: number) => {
-  return t + new Date(dayTimestamp).setHours(0,0,0,0)/1000/60;
+  return t + new Date(dayTimestamp).setUTCHours(0,0,0,0)/1000/60;
 };
 
 export const displayTimeSinceEpoch = (t: number) => {

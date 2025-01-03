@@ -9,6 +9,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { BackHandler, Pressable, ScrollView, Text, View } from 'react-native'
 import DraggableFlatList from 'react-native-draggable-flatlist';
+import * as Haptics from 'expo-haptics';
 
 export default function Subjects() {
   const db = useSQLiteContext();
@@ -29,6 +30,7 @@ export default function Subjects() {
 
   const handleLongPress = (id: number) => {
     if (selected.length == 0) {
+      Haptics.selectionAsync();
       setSelected([id]);
     }
   };
@@ -52,8 +54,8 @@ export default function Subjects() {
   const handleClose = (added?: boolean) => {
     if (added) {
       getSubjects(db)
-      .then(s => setSubjects(s))
-      .catch(e => console.log(e));
+        .then(s => setSubjects(s))
+        .catch(e => console.log(e));
     }
 
     setSelected([]);

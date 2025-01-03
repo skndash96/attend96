@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS records (
     FOREIGN KEY(subjectId) REFERENCES subjects(id) ON DELETE RESTRICT
 );
 CREATE INDEX IF NOT EXISTS idx_records_subject ON records(subjectId);
+CREATE INDEX IF NOT EXISTS idx_records_start_time ON records(startTimeMinsSinceEpoch);
 -- TODO: Create suitable indexes
   `);
 

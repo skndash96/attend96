@@ -5,7 +5,7 @@ import { displayDate } from '@/utils/functions';
 
 export default function Header(props: BottomTabHeaderProps) {
   const date = new Date();
-  date.setHours(0, 0, 0, 0);
+  date.setUTCHours(0, 0, 0, 0);
 
   return (
     <View style={{

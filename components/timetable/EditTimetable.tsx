@@ -10,6 +10,7 @@ import { useSQLiteContext } from 'expo-sqlite'
 import { useNavigation } from 'expo-router'
 import Icon from '../Icon'
 import { Subject } from '@/utils/subjects'
+import * as Haptics from 'expo-haptics'
 
 export default function EditTimetable({
   setVisible,
@@ -48,7 +49,13 @@ export default function EditTimetable({
   };
 
   const handleLongPress = (slotIndex: number) => {
+    if (selected.length === 0) {
+      console.log('Haptic');
+      Haptics.selectionAsync();
+    };
+    
     const newSelected = [...selected];
+
 
     const idx = newSelected.indexOf(slotIndex);
 

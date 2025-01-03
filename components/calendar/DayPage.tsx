@@ -102,10 +102,7 @@ export default function DayPage({
         visible={addRecordModalVisible}
         subjects={subjects}
         addAtDayTimestamp={timestamp}
-        lastCell={records.length > 0 ? {
-          startTime: epochStartTimeToStartTime(records[records.length - 1].startTimeMinsSinceEpoch),
-          duration: records[records.length - 1].durationMins
-        } : null}
+        cells={[]}
         onClose={handleAddRecord}
       />
 

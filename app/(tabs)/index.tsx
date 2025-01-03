@@ -91,7 +91,7 @@ export default function Home() {
       <AddExtraClassModal
         visible={addExtraClassModalVisible}
         onClose={handleAddExtraClass}
-        lastCell={cells[cells.length - 1] ?? null}
+        cells={cells}
         subjects={subjects}
         addAtDayTimestamp={Date.now()}
       />

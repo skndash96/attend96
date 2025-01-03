@@ -5,6 +5,7 @@ import React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import Icon from '../Icon'
 import { getCriteria } from '@/utils/misc'
+import * as Haptics from 'expo-haptics'
 
 export default function SubjectRecord({
   record,
@@ -22,6 +23,8 @@ export default function SubjectRecord({
   }, criteria);
 
   const handleStatusChange = (status: Status) => {
+    Haptics.impactAsync();
+
     updateRecordStatus(db, record, status === record.status ? null : status)
       .then(() => {
         onStatusChange();
@@ -38,47 +41,49 @@ export default function SubjectRecord({
       margin: 10,
       marginBottom: 5,
       borderColor: "lightgray",
-      opacity: record.subjectId === null ? 0.5 : 1,
+      opacity: record.subjectId === null ? 0.7 : 1,
     }}>
       <View style={{
         display: "flex",
         flexDirection: "row",
         alignItems: "center"
       }}>
-        <View style={{
-          marginRight: 10,
-          padding: 10,
-          backgroundColor: '#e0e0e0',
-          borderRadius: 100,
-          width: 60,
-          height: 60
-        }}>
-          <Text style={{
-            fontSize: 14,
-            textAlign: "center",
-            marginTop: -4,
-            paddingBottom: 2,
-            marginBottom: 2,
-            borderBottomWidth: 1,
-            borderBottomColor: color,
-            color
+        {record.subjectId !== null && (
+          <View style={{
+            marginRight: 10,
+            padding: 10,
+            backgroundColor: '#e0e0e0',
+            borderRadius: 100,
+            width: 60,
+            height: 60
           }}>
-            {ratio}
-          </Text>
+            <Text style={{
+              fontSize: 14,
+              textAlign: "center",
+              marginTop: -4,
+              paddingBottom: 2,
+              marginBottom: 2,
+              borderBottomWidth: 1,
+              borderBottomColor: color,
+              color
+            }}>
+              {ratio}
+            </Text>
 
-          <Text style={{
-            textAlign: "center",
-            color
-          }}>
-            {criteria}
-          </Text>
-        </View>
+            <Text style={{
+              textAlign: "center",
+              color
+            }}>
+              {criteria}
+            </Text>
+          </View>
+        )}
 
         <View>
           <Text style={{
             fontSize: 16
           }}>
-            {record.subjectName}
+            {record.subjectName || "Free period"}
           </Text>
 
           <Text style={{
@@ -90,20 +95,20 @@ export default function SubjectRecord({
         </View>
       </View>
 
-      <View style={{
-        marginTop: 20,
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between"
-      }}>
-        <Text style={{
-          fontSize: 12,
-          color: '#666'
+      {record.subjectId && (
+        <View style={{
+          marginTop: 20,
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between"
         }}>
-          {text}
-        </Text>
+          <Text style={{
+            fontSize: 12,
+            color: '#666'
+          }}>
+            {text}
+          </Text>
 
-        {record.subjectId && (
           <View style={{
             display: "flex",
             flexDirection: "row",
@@ -143,8 +148,8 @@ export default function SubjectRecord({
               <Icon name="check" family='ad' size={20} />
             </TouchableOpacity>
           </View>
-        )}
-      </View>
+        </View>
+      )}
     </View>
   )
 }
