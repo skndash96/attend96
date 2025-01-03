@@ -1,41 +1,28 @@
 import DayPage from '@/components/calendar/DayPage';
-import Icon from '@/components/Icon';
-import { Time } from '@/utils/functions';
 import { getMonthData, Marking, markingColors, MonthData } from '@/utils/monthData';
 import { getSubjects, Subject } from '@/utils/subjects';
 import { useIsFocused } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { Suspense, useEffect } from 'react'
-import { BackHandler, Dimensions, NativeAppEventEmitter, Pressable, Text, View } from 'react-native'
-import { CalendarList, Calendar as RNCalendar } from 'react-native-calendars'
-import Animated, { FadeIn, FadeOut, SlideInRight } from 'react-native-reanimated';
+import React, { useEffect } from 'react'
+import { Dimensions, Pressable, Text, View } from 'react-native'
+import { Calendar as RNCalendar } from 'react-native-calendars'
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('screen').width;
 
 export default function Calendar() {
   const navigator = useNavigation();
   const db = useSQLiteContext();
+  const isFocused = useIsFocused();
   const [currentDate, setCurrentDate] = React.useState<number | null>(null);
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
-  const isFocused = useIsFocused();
   const [month, setMonth] = React.useState<Date>(new Date());
   const [monthData, setMonthData] = React.useState<MonthData | null>(null);
 
-  const handleDayClick = (timestamp: number) => {
-    setCurrentDate(timestamp);
-  };
-
   useEffect(() => {
-    if (currentDate == null) {
-      navigator.setOptions({
-        headerTitle: null,
-        headerLeft: null
-      });
-    }
-  }, [currentDate]);
+    if (!isFocused) return;
 
-  useEffect(() => {
     getSubjects(db)
       .then((subjects) => {
         setSubjects(subjects);
@@ -57,8 +44,13 @@ export default function Calendar() {
       });
   }, [currentDate, month]);
 
-  const handleDayPageBack = () => {
+  const handleDayPageClose = () => {
     setCurrentDate(null);
+
+    navigator.setOptions({
+      headerTitle: null,
+      headerLeft: null
+    });
   };
 
   return (
@@ -67,7 +59,7 @@ export default function Calendar() {
         <DayPage
           subjects={subjects}
           timestamp={currentDate}
-          onClose={handleDayPageBack}
+          onClose={handleDayPageClose}
         />
       ) : (
         <Animated.View entering={FadeIn.duration(200)}>
@@ -79,7 +71,7 @@ export default function Calendar() {
               let marking = markingColors[monthData?.markings[date.day] ?? Marking.NoData];
 
               return (
-                <Pressable onPress={() => handleDayClick(date.timestamp)} android_ripple={{ color: 'lightgray' }} style={{
+                <Pressable onPress={() => setCurrentDate(date.timestamp)} android_ripple={{ color: 'lightgray' }} style={{
                   padding: 6,
                   display: 'flex',
                   justifyContent: 'center',

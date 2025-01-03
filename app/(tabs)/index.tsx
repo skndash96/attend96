@@ -1,15 +1,14 @@
 import AddExtraClassModal from '@/components/home/AddExtraClassModal';
 import SubjectRecord from '@/components/home/SubjectRecord';
 import Icon from '@/components/Icon';
-import { displayDate, displayTime } from '@/utils/functions';
 import { FullAttendanceRecord, getFullRecordsOfToday } from '@/utils/records';
-import { getSubject, getSubjects, Subject } from '@/utils/subjects';
+import { getSubjects, Subject } from '@/utils/subjects';
 import { FullCell, getTimetableOfDay } from '@/utils/timetable';
 import { useIsFocused } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { Fragment, useEffect, useLayoutEffect, useState } from 'react';
-import { BackHandler, Pressable, Text, View } from 'react-native'
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { BackHandler, Pressable, View } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function Home() {
@@ -22,28 +21,28 @@ export default function Home() {
   const [counter, setCounter] = useState(0);
   const [addExtraClassModalVisible, setAddExtraClassModalVisible] = useState(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    if (!isFocused) return;
+
     const day = new Date().getDay();
 
     getTimetableOfDay(db, day)
-      .then((cells) => setCells(cells))
-      .catch((e) => console.error(e));
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!isFocused) return;
-
-    getFullRecordsOfToday(db, cells, true)
-      .then((records) => {
-        //TODO: merge records so that they go hand in hand with cells in case timetable got updated
-        setRecords(records);
+      .then((cells) => {
+        setCells(cells);
+        
+        getFullRecordsOfToday(db, cells, true)
+          .then((records) => {
+            //TODO: merge records so that they go hand in hand with cells in case timetable got updated
+            setRecords(records);
+          })
+          .catch((e) => console.error(e));
       })
       .catch((e) => console.error(e));
 
     getSubjects(db)
       .then((subs) => setSubjects(subs))
       .catch((e) => console.error(e));
-  }, [isFocused, counter, cells]);
+  }, [isFocused, counter]);
 
   useLayoutEffect(() => {
     navigator.setOptions({
@@ -57,7 +56,9 @@ export default function Home() {
         );
       }
     });
+  }, []);
 
+  useLayoutEffect(() => {
     const backHandler = () => {
       if (addExtraClassModalVisible) {
         setAddExtraClassModalVisible(false);

@@ -7,7 +7,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useLayoutEffect, useState } from 'react'
-import { BackHandler, Pressable, ScrollView, Text, View } from 'react-native'
+import { BackHandler, Pressable, Text, View } from 'react-native'
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as Haptics from 'expo-haptics';
 import SubjectPage from '@/components/subjects/SubjectPage';
@@ -25,7 +25,8 @@ export default function Subjects() {
   const [counter, setCounter] = useState(0);
   const [subjectPage, setSubjectPage] = useState<Subject | null>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    if (!isFocused) return;
     if (subjectPage !== null) return;
 
     getSubjects(db)
@@ -86,7 +87,7 @@ export default function Subjects() {
     return () => BackHandler.removeEventListener("hardwareBackPress", backPressHandler);
   }, [selected]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (subjectPage !== null) return;
     
     if (selected.length > 0) {

@@ -33,7 +33,7 @@ export const getMonthData = async (db: SQLiteDatabase, date: Date): Promise<Mont
 
   for (let i = 1; i < 32; i++) {
     date.setUTCDate(i);
-    
+    //TODO
     const res = await db.getAllAsync<{ subjectId: number|null, status: Status }>(
       `SELECT subjectId, status FROM records WHERE startTimeMinsSinceEpoch >= ? AND startTimeMinsSinceEpoch < ?`,
       [date.getTime() / 1000 / 60, date.getTime() / 1000 / 60 + 1440]
@@ -75,6 +75,6 @@ export const getMonthData = async (db: SQLiteDatabase, date: Date): Promise<Mont
 
   return {
     count,
-    markings //array of 31 elements
+    markings
   };
 };

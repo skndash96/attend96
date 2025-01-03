@@ -1,11 +1,11 @@
 import { useNavigation } from "expo-router";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
+import { BackHandler, Pressable, Text, View } from "react-native";
 import Icon from "../Icon";
 import { FullAttendanceRecord, getFullRecordsOfDate } from "@/utils/records";
 import { useSQLiteContext } from "expo-sqlite";
 import SubjectRecord from "../home/SubjectRecord";
-import { displayDate, displayTimeSinceEpoch, epochStartTimeToStartTime } from "@/utils/functions";
+import { displayDate } from "@/utils/functions";
 import Animated, { SlideInRight } from "react-native-reanimated";
 import AddExtraClassModal from "../home/AddExtraClassModal";
 import { Subject } from "@/utils/subjects";

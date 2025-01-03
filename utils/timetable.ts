@@ -10,8 +10,11 @@ export interface Cell {
 }
 
 export interface FullCell extends Cell {
-  subjectName: string,
-  subjectShortName: string
+  subjectName?: string,
+  subjectShortName?: string,
+  subjectTotal?: number,
+  subjectPresent?: number,
+  subjectOff?: number
 }
 
 export const getCell = async (db: SQLiteDatabase, id: number) => {
@@ -28,11 +31,14 @@ export const getFullCells = async (db: SQLiteDatabase) => {
     SELECT 
       timetable.*, 
       subjects.name as subjectName, 
-      subjects.shortName as subjectShortName
+      subjects.shortName as subjectShortName,
+      subjects.total as subjectTotal,
+      subjects.present as subjectPresent,
+      subjects.off as subjectOff
     FROM timetable
     LEFT JOIN subjects
       ON timetable.subjectId = subjects.id
-    ORDER BY idx, day ASC
+    ORDER BY day, idx ASC
   `);
 
   return res;
@@ -43,7 +49,10 @@ export const getTimetableOfDay = async (db: SQLiteDatabase, day: number) => {
     SELECT 
       timetable.*, 
       subjects.name as subjectName, 
-      subjects.shortName as subjectShortName
+      subjects.shortName as subjectShortName,
+      subjects.total as subjectTotal,
+      subjects.present as subjectPresent,
+      subjects.off as subjectOff
     FROM timetable
     LEFT JOIN subjects
       ON timetable.subjectId = subjects.id
@@ -53,9 +62,15 @@ export const getTimetableOfDay = async (db: SQLiteDatabase, day: number) => {
 };
 
 export const getTimetable = async (db: SQLiteDatabase) => {
-  return await Promise.all([0,1,2,3,4,5,6].map(day => {
-    return getTimetableOfDay(db, day);
-  }));
+  const out = [[], [], [], [], [], [], []] as FullCell[][];
+
+  const cells = await getFullCells(db);
+
+  for (let cell of cells) {
+    out[cell.day].push(cell);
+  }
+
+  return out;
 };
 
 export const orderCellsIdx = async (db: SQLiteDatabase, cells: FullCell[]) => {
@@ -84,7 +99,6 @@ export const orderCellsIdx = async (db: SQLiteDatabase, cells: FullCell[]) => {
   q += `UPDATE timetable SET idx = -idx-1 WHERE day = ${day} AND idx < 0;`;
 
   await db.execAsync(q);
-  return cells.length;
 };
 
 export const addCell = async (db: SQLiteDatabase, cell: Omit<Omit<Cell, "id">, 'idx'>) => {
@@ -92,30 +106,23 @@ export const addCell = async (db: SQLiteDatabase, cell: Omit<Omit<Cell, "id">, '
   
   const idx = Math.max(...cells.map(c => c.idx), -1) + 1;
 
-  const res = await db.runAsync(`
+  await db.runAsync(`
     INSERT INTO timetable (subjectId, day, idx, startTime, duration)
     VALUES (?, ?, ?, ?, ?)
   `, [cell.subjectId, cell.day, idx, cell.startTime, cell.duration]);
-
-  return res.lastInsertRowId;
 };
 
 export const updateCell = async (db: SQLiteDatabase, cell: Omit<Omit<Cell, 'day'>, 'idx'>) => {
-  const res = await db.runAsync(`
+  await db.runAsync(`
     UPDATE timetable
     SET startTime = ?, duration = ?, subjectId = ?
     WHERE id = ?
   `, [cell.startTime, cell.duration, cell.subjectId, cell.id]);
-
-  return res.changes;
 };
 
 export const deleteCells = async (db: SQLiteDatabase, ids: (number)[]) => {
-  const res = await db.runAsync(`
+  await db.runAsync(`
     DELETE FROM timetable 
     WHERE id IN (${ids.join(",")})
   `);
-
-  
-  return res.changes;
 };

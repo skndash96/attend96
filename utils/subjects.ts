@@ -9,7 +9,6 @@ export interface Subject {
   total: number;
   off: number;
   present: number;
-  //absent: total-present
 }
 
 export const getSubjects = async (db: SQLiteDatabase) => {
@@ -27,7 +26,8 @@ export const getSubjectsCount = async (db: SQLiteDatabase) => {
     FROM subjects
     WHERE idx != 1`
   );
-  return res?.count || 0;
+
+  return res?.count ?? 0;
 };
 
 export const getSubject = async (db: SQLiteDatabase, id: number) => {
@@ -41,13 +41,12 @@ export const getSubject = async (db: SQLiteDatabase, id: number) => {
 
 export const createSubject = async (db: SQLiteDatabase, name: string, shortName: string) => {
   const idx = await getSubjectsCount(db);
-  const res = await db.runAsync(`
+  
+  await db.runAsync(`
     INSERT INTO subjects (idx, name, shortName)
     VALUES (?, ?, ?)`,
     [idx, name, shortName]
   );
-  
-  return res.lastInsertRowId;
 };
 
 export const orderSubjectsIdx = async (db: SQLiteDatabase, subjects: Subject[]) => {
@@ -93,46 +92,38 @@ export const updateSubject = async (db: SQLiteDatabase, from: Subject, { name, s
   if (shortName && shortName !== from.shortName) q += `shortName = '${shortName}', `;
   
   //no set values
-  if (q.length === initQLength) return 0;
+  if (q.length === initQLength) return;
   
   q = q.slice(0, -2);
   q += ` WHERE id = ${from.id}`;
 
-  const res = await db.runAsync(q);
-
-  return res.changes;
+  await db.runAsync(q);
 };
 
 export const safeDeleteSubject = async (db: SQLiteDatabase, id: number) => {
-  const res = await db.runAsync(`
+  await db.runAsync(`
     UPDATE subjects
     SET idx = -1
     WHERE id = ?`,
     [id]
   );
-
-  return res.changes;
 };
 
 export const restoreSubject = async (db: SQLiteDatabase, id: number) => {
-  const res = await db.runAsync(`
+  await db.runAsync(`
     UPDATE subjects
     SET idx = 0
     WHERE id = ?`,
     [id]
   );
-
-  return res.changes;
 };
 
 export const unsafeDeleteSubject = async (db: SQLiteDatabase, id: number) => {
   // This is a dangerous operation, as it will delete the subject and
   // all associated Attendance records
-  const res = await db.runAsync(`
+  await db.runAsync(`
     DELETE FROM subjects
     WHERE id = ?`,
     [id]
   );
-
-  return res.changes;
 };

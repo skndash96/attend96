@@ -3,7 +3,7 @@ import { days } from "@/lib/constants";
 import { FullCell, getTimetable } from "@/utils/timetable";
 import { useNavigation } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Dimensions, Pressable, ScrollView, Text, View } from "react-native";
 import EditTimetable from "@/components/timetable/EditTimetable";
 import { getSubjects, Subject } from "@/utils/subjects";

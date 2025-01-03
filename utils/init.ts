@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     off INTEGER NOT NULL DEFAULT 0 CHECK(off >= 0),
     present INTEGER NOT NULL DEFAULT 0 CHECK(present >= 0)
 );
+CREATE INDEX IF NOT EXISTS idx_subjects_idx ON subjects(idx);
 
 -- Timetable Table
 CREATE TABLE IF NOT EXISTS timetable (
@@ -20,13 +21,12 @@ CREATE TABLE IF NOT EXISTS timetable (
     day INTEGER NOT NULL CHECK(day BETWEEN 0 AND 6),
     idx INTEGER NOT NULL,
     startTime INTEGER NOT NULL,
-    duration INTEGER NOT NULL CHECK(duration > 0),
+    duration INTEGER NOT NULL,
     FOREIGN KEY(subjectId) REFERENCES subjects(id) ON DELETE RESTRICT,
     UNIQUE(day, idx) ON CONFLICT REPLACE
 );
 CREATE INDEX IF NOT EXISTS idx_timetable_subject ON timetable(subjectId);
 CREATE INDEX IF NOT EXISTS idx_timetable_day_idx ON timetable(day, idx);
--- TODO Create suitable indexes
 
 -- Records/Attendance Table
 CREATE TABLE IF NOT EXISTS records (
@@ -38,9 +38,9 @@ CREATE TABLE IF NOT EXISTS records (
     status INTEGER CHECK(status IN (-1, 0, 1)),
     FOREIGN KEY(subjectId) REFERENCES subjects(id) ON DELETE RESTRICT
 );
-CREATE INDEX IF NOT EXISTS idx_records_subject ON records(subjectId);
-CREATE INDEX IF NOT EXISTS idx_records_start_time ON records(startTimeMinsSinceEpoch);
--- TODO: Create suitable indexes
+CREATE INDEX IF NOT EXISTS idx_records_subject_time ON records(subjectId, startTimeMinsSinceEpoch);
+CREATE INDEX IF NOT EXISTS idx_records_time_range ON records(startTimeMinsSinceEpoch);
+CREATE INDEX IF NOT EXISTS idx_records_composite ON records(subjectId, startTimeMinsSinceEpoch DESC);
   `);
 
   console.log('Database initialized');
