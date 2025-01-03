@@ -74,6 +74,40 @@ export const getFullRecordsOfDate = async (db: SQLiteDatabase, date: number, cel
   return res;
 }
 
+export const getGroupedRecordsOfSubject = async (db: SQLiteDatabase, subjectId: number) => {
+  const res = await db.getAllAsync<AttendanceRecord>(
+    `SELECT *
+    FROM records
+    WHERE subjectId = ?
+    ORDER BY startTimeMinsSinceEpoch DESC`,
+    [subjectId]
+  );
+
+  console.log("$$", res);
+
+  if (res.length === 0) return [];
+
+  const out = [] as AttendanceRecord[][];
+
+  let tmp = [] as AttendanceRecord[];
+  let last = new Date(res[0].startTimeMinsSinceEpoch * 60 * 1000).setUTCHours(0, 0, 0, 0);
+
+  for (const record of res) {
+    const curr = new Date(record.startTimeMinsSinceEpoch * 60 * 1000).setUTCHours(0, 0, 0, 0);
+
+    if (curr === last) {
+      tmp.push(record);
+    } else {
+      out.push(tmp);
+      tmp = [record];
+      last = curr;
+    }
+  }
+  if (tmp.length > 0) out.push(tmp);
+
+  return out;
+};
+
 export const insertRecord = async (db: SQLiteDatabase, record: InsertAttendanceRecord) => {
   if (record.subjectId === null && record.status !== null) {
     throw new Error("Subject ID cannot be null if status is not null");
@@ -94,6 +128,8 @@ export const updateRecordStatus = async (db: SQLiteDatabase, record: AttendanceR
     `UPDATE records SET status = ? WHERE id = ?`,
     [to, record.id]
   );
-
+  console.log("$#", await db.getAllAsync(`SELECT * FROM records WHERE id = ?`, [record.id]));
   await updateSubjectAttendance(db, record.subjectId, record.status, to);
+
+  console.log(`Updated record ${record.status} to ${to}`);
 };

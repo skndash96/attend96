@@ -2,9 +2,9 @@ import { SQLiteDatabase } from "expo-sqlite";
 import { Status } from "./records";
 
 export const markingColors : Record<Marking, string> = [
-  "red",
+  "salmon",
   "orange",
-  "green",
+  "mediumseagreen",
   "blue",
   "hotpink",
   "lightgray"

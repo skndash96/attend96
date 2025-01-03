@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'attend96'
+rootProject.name = 'Attend96'
 
 dependencyResolutionManagement {
   versionCatalogs {

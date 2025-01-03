@@ -10,6 +10,8 @@ import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { BackHandler, Pressable, ScrollView, Text, View } from 'react-native'
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as Haptics from 'expo-haptics';
+import SubjectPage from '@/components/subjects/SubjectPage';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 export default function Subjects() {
   const db = useSQLiteContext();
@@ -21,12 +23,15 @@ export default function Subjects() {
   const [editing, setEditing] = useState<Subject | null>(null);
   const [isReordering, setIsReordering] = useState(false);
   const [counter, setCounter] = useState(0);
+  const [subjectPage, setSubjectPage] = useState<Subject | null>(null);
 
   useLayoutEffect(() => {
+    if (subjectPage !== null) return;
+
     getSubjects(db)
       .then(s => setSubjects(s))
       .catch(e => console.log(e));
-  }, [counter, isFocused]);
+  }, [counter, isFocused, subjectPage]);
 
   const handleLongPress = (id: number) => {
     if (selected.length == 0) {
@@ -47,7 +52,7 @@ export default function Subjects() {
         setSelected(newSelected);
       }
     } else {
-      // TODO: navigate to subject
+      setSubjectPage(subjects.find(s => s.id === id) ?? null);
     }
   };
 
@@ -82,6 +87,8 @@ export default function Subjects() {
   }, [selected]);
 
   useEffect(() => {
+    if (subjectPage !== null) return;
+    
     if (selected.length > 0) {
       navigator.setOptions({
         headerTitle: () => null,
@@ -137,7 +144,7 @@ export default function Subjects() {
             }} style={{
               padding: 10
             }} onPress={() => {
-              // delete subjects
+              //TODO: delete subjects
             }}>
               <Text style={{ color: "red" }}>
                 Delete
@@ -161,7 +168,7 @@ export default function Subjects() {
         </View>
       )
     });
-  }, [selected, isReordering]);
+  }, [selected, isReordering, subjectPage]);
 
   const handleDragEnd = (data: Subject[]) => {
     orderSubjectsIdx(db, data)
@@ -193,11 +200,20 @@ export default function Subjects() {
     );
   }
 
+  if (subjectPage) {
+    return (
+      <SubjectPage
+        subject={subjectPage}
+        onClose={() => setSubjectPage(null)}
+      />
+    );
+  }
+
   return (
-    <ScrollView style={{
+    <Animated.ScrollView style={{
       display: "flex",
       flexDirection: "column"
-    }}>
+    }} entering={FadeIn.duration(200)}>
       <AddSubjectModal
         editing={editing}
         visible={visible}
@@ -213,6 +229,6 @@ export default function Subjects() {
           data={s}
         />
       ))}
-    </ScrollView>
+    </Animated.ScrollView>
   )
 }

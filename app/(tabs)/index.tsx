@@ -86,7 +86,7 @@ export default function Home() {
   return (
     <ScrollView style={{
       flex: 1,
-      marginBottom: 20
+      padding: 10
     }}>
       <AddExtraClassModal
         visible={addExtraClassModalVisible}
@@ -96,13 +96,19 @@ export default function Home() {
         addAtDayTimestamp={Date.now()}
       />
 
-      {records.map((record, i) => (
-        <SubjectRecord
-          onStatusChange={handleStatusChange}
-          record={record}
-          key={record.id}
-        />
-      ))}
+      <View style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10
+      }}>
+        {records.map((record, i) => (
+          <SubjectRecord
+            onStatusChange={handleStatusChange}
+            record={record}
+            key={record.id}
+          />
+        ))}
+      </View>
     </ScrollView>
   );
 }

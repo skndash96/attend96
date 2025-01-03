@@ -49,7 +49,7 @@ export default function DayPage({
     };
 
     navigator.setOptions({
-      headerTitle: () => null,
+      headerTitle: () => displayDate(timestamp),
       headerLeft() {
         return (
           <Pressable
@@ -105,17 +105,11 @@ export default function DayPage({
         cells={[]}
         onClose={handleAddRecord}
       />
-
-      <Text style={{
-        padding: 20,
-        paddingBottom: 0,
-        fontSize: 16,
-      }}>
-        {displayDate(timestamp)}
-      </Text>
-
       <View style={{
-        padding: 10
+        padding: 10,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10
       }}>
         {records.map((record, i) => (
           <SubjectRecord

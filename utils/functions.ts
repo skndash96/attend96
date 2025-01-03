@@ -26,7 +26,7 @@ export const getSubjectAttendanceInfo = (data: { total: number, present: number,
   return {
     ratio,
     text,
-    color: ratio >= criteria ? "green" : "orangered",
+    color: ratio >= criteria ? "mediumseagreen" : "salmon",
     criteria: criteria
   };
 }
@@ -45,7 +45,6 @@ export const checkIntervals = (cells: Interval[], x: Interval) => {
 
 export const epochStartTimeToStartTime = (t: number) => {
   const d = new Date(t * 60 * 1000);
-  
   return t - d.setUTCHours(0,0,0,0)/1000/60;
 }
 

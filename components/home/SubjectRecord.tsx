@@ -38,8 +38,6 @@ export default function SubjectRecord({
       padding: 10,
       borderWidth: 1,
       borderRadius: 10,
-      margin: 10,
-      marginBottom: 5,
       borderColor: "lightgray",
       opacity: record.subjectId === null ? 0.7 : 1,
     }}>
@@ -123,7 +121,7 @@ export default function SubjectRecord({
               justifyContent: "center",
               alignItems: "center"
             }}>
-              <Icon name="minus" family='ad' size={20} />
+              <Icon name="minus" family='ad' size={16} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleStatusChange(-1)} style={{
               width: 24,
@@ -134,18 +132,18 @@ export default function SubjectRecord({
               justifyContent: "center",
               alignItems: "center"
             }}>
-              <Icon name="close" family='ad' size={20} />
+              <Icon name="close" family='ad' size={16} />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleStatusChange(1)} style={{
               width: 24,
               height: 24,
               borderRadius: 20,
-              backgroundColor: record.status === 1 ? "lightgreen" : "lightgray",
+              backgroundColor: record.status === 1 ? "mediumseagreen" : "lightgray",
               display: "flex",
               justifyContent: "center",
               alignItems: "center"
             }}>
-              <Icon name="check" family='ad' size={20} />
+              <Icon name="check" family='ad' size={16} />
             </TouchableOpacity>
           </View>
         </View>
