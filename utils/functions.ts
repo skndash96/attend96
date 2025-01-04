@@ -36,9 +36,9 @@ export const checkIntervals = (cells: Interval[], x: Interval) => {
 
   let i=0;
   while (i < cells.length && cells[i].startTime < x.startTime) i++;
-
+  
   if (i !== 0 && x.startTime < cells[i-1].startTime + cells[i-1].duration) return false;
-  if (i !== cells.length-1 && x.startTime + x.duration > cells[i].startTime) return false;
+  if (i !== cells.length && x.startTime + x.duration > cells[i].startTime) return false;
 
   return true;
 }

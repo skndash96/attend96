@@ -60,8 +60,9 @@ export default function Subjects() {
   const handleClose = (added?: boolean) => {
     if (added) {
       getSubjects(db)
-        .then(s => setSubjects(s))
-        .catch(e => console.log(e));
+        .then(s => {
+          setSubjects(s);
+      }).catch(e => console.log(e));
     }
 
     setSelected([]);

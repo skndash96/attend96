@@ -28,6 +28,8 @@ export default function Timetable() {
   }, [timetable]);
 
   useEffect(() => {
+    if (!isFocused) return;
+    
     getTimetable(db)
       .then(tt => {
         setTimetable(tt);

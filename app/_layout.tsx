@@ -6,7 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
   return (
-    <SQLiteProvider onInit={initDb} databaseName="test.db">
+    <SQLiteProvider onInit={initDb} databaseName="test1.db">
       <GestureHandlerRootView style={{
         flex: 1
       }}>

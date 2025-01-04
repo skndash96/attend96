@@ -8,7 +8,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useNavigation } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useLayoutEffect, useState } from 'react';
-import { BackHandler, Pressable, View } from 'react-native'
+import { BackHandler, Pressable, Text, View } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function Home() {
@@ -102,6 +102,21 @@ export default function Home() {
         flexDirection: 'column',
         gap: 10
       }}>
+        {records.length === 0 && (
+          <View style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 5
+          }}>
+            <Text style={{
+              color: 'gray'
+            }}>
+              No classes today
+            </Text>
+          </View>
+        )}
         {records.map((record, i) => (
           <SubjectRecord
             onStatusChange={handleStatusChange}

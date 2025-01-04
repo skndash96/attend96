@@ -46,7 +46,7 @@ export default function AddCellModalData({
   const [duration, setDuration] = useState<Time>(initialDuration);
   const [subject, setSubject] = useState<Subject>(freeSubject);
   const [page, setPage] = useState<number>(0);
-  const [toastVisible, setToastVisible] = useState<boolean>(false);
+  
   const handleAdd = () => {
     const intervalsOk = checkIntervals(cells, {
       startTime: startTime.hours * 60 + startTime.minutes,

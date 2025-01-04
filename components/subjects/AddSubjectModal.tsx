@@ -3,6 +3,8 @@ import { Modal, Pressable, Text, TextInput, View } from 'react-native'
 import SlideUpView from '../SlideUpView'
 import { createSubject, Subject, updateSubject } from '@/utils/subjects';
 import { useSQLiteContext } from 'expo-sqlite';
+import * as Haptics from 'expo-haptics';
+import Toast from "react-native-simple-toast";
 
 export default function AddSubjectModal({
   visible,
@@ -23,6 +25,12 @@ export default function AddSubjectModal({
   }, [editing]);
 
   const handleOnSubmit = () => {
+    if (name.length === 0 || shortName.length === 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show('Please fill all the fields', 2500);
+      return;   
+    }
+
     if (editing) {
       updateSubject(db, editing, { name, shortName })
       .then(() => {
@@ -89,7 +97,7 @@ export default function AddSubjectModal({
             }} />
           </View>
 
-          <Pressable onPress={handleOnSubmit} disabled={name.length === 0 && shortName.length === 0} android_ripple={{
+          <Pressable onPress={handleOnSubmit} android_ripple={{
             color: 'lightgray'
           }} style={{
             backgroundColor: 'royalblue',
