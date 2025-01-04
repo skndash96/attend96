@@ -7,3 +7,5 @@ Todo: Location based atendance marking
 <img src="https://i.ibb.co/YPVBfKJ/Untitled.jpg" alt="Timetable Edit" width="120" height="250">
 <img src="https://i.ibb.co/YPG1FLk/Untitled.jpg" alt="Calendar" width="120" height="250">
 <img src="https://i.ibb.co/nfssBsT/Untitled.jpg" alt="Timetable" width="120" height="250">
+
+[Build apk](https://tinydash96.vercel.app/a96)
