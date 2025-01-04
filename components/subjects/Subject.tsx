@@ -62,7 +62,7 @@ export default function SubjectComponent({
           fontSize: 14,
           fontWeight: "bold"
         }}>
-          {data.name}
+          {data.name} ({data.shortName})
         </Text>
 
         <Text style={{

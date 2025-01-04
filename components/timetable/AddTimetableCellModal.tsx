@@ -48,10 +48,13 @@ export default function AddCellModalData({
   const [page, setPage] = useState<number>(0);
   
   const handleAdd = () => {
-    const intervalsOk = checkIntervals(cells, {
-      startTime: startTime.hours * 60 + startTime.minutes,
-      duration: duration.hours * 60 + duration.minutes
-    });
+    const intervalsOk = checkIntervals(
+      editCell ? cells.filter(c => c.id !== editCell.id) : cells,
+      {
+        startTime: startTime.hours * 60 + startTime.minutes,
+        duration: duration.hours * 60 + duration.minutes
+      }
+    );
 
     if (!intervalsOk) {
       Toast.show('Time Interval is overlapping other Intervals', 2500);
